@@ -68,9 +68,6 @@ export function GalleryPage() {
       {/* Header */}
       <div>
         <h1>Gallery</h1>
-        <p className="text-muted-foreground">
-          Moments from our training sessions, competitions, and events
-        </p>
       </div>
 
       {/* Category Filter */}

@@ -1,6 +1,8 @@
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { Button } from "./ui/button";
 
 export function SchedulePage() {
   const weeklySchedule = [
@@ -70,6 +72,21 @@ export function SchedulePage() {
   };
 
   const currentDay = getCurrentDay();
+  const [selectedDayIndex, setSelectedDayIndex] = useState(() => {
+    // Initialize to today's index
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days.indexOf(currentDay);
+  });
+
+  const selectedDay = weeklySchedule[selectedDayIndex];
+
+  const goToPreviousDay = () => {
+    setSelectedDayIndex((prev) => (prev === 0 ? 6 : prev - 1));
+  };
+
+  const goToNextDay = () => {
+    setSelectedDayIndex((prev) => (prev === 6 ? 0 : prev + 1));
+  };
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -100,53 +117,70 @@ export function SchedulePage() {
           <Calendar className="h-6 w-6" />
           Class Schedule
         </h1>
-        <Badge variant="secondary" className="flex items-center gap-1">
-          <Clock className="h-3 w-3" />
-          {currentDay}
-        </Badge>
+        {selectedDay.day === currentDay && (
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            Today
+          </Badge>
+        )}
       </div>
 
-      {/* Compact Weekly Schedule */}
+      {/* Single Day Schedule */}
       <Card>
         <CardContent className="p-4">
+          {/* Day Navigation */}
+          <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={goToPreviousDay}
+              aria-label="Previous day"
+              className="h-8 w-8"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="text-center flex-1">
+              <h2 className="text-lg font-semibold">{selectedDay.day}</h2>
+              {selectedDay.day === currentDay && (
+                <p className="text-xs text-muted-foreground">Today's Classes</p>
+              )}
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={goToNextDay}
+              aria-label="Next day"
+              className="h-8 w-8"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
           <div className="space-y-3">
-            {weeklySchedule.map((daySchedule, dayIndex) => (
+            {selectedDay.classes.map((classItem, classIndex) => (
               <div 
-                key={dayIndex} 
-                className={`pb-3 ${dayIndex !== weeklySchedule.length - 1 ? 'border-b' : ''}`}
+                key={classIndex} 
+                className={`p-3 rounded-lg border hover:bg-accent/50 transition-colors ${
+                  classIndex !== selectedDay.classes.length - 1 ? 'mb-2' : ''
+                }`}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`text-sm font-medium min-w-[80px] ${daySchedule.day === currentDay ? 'text-primary' : 'text-muted-foreground'}`}>
-                    {daySchedule.day}
-                  </span>
-                  {daySchedule.day === currentDay && (
-                    <Badge variant="default" className="text-xs h-5">Today</Badge>
-                  )}
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{classItem.name}</h3>
+                    <p className="text-sm text-muted-foreground">{classItem.instructor}</p>
+                  </div>
+                  <Badge 
+                    variant="outline" 
+                    className={`flex-shrink-0 ${getLevelColor(classItem.level)}`}
+                  >
+                    {classItem.level}
+                  </Badge>
                 </div>
-                
-                <div className="space-y-1.5 ml-0 sm:ml-20">
-                  {daySchedule.classes.map((classItem, classIndex) => (
-                    <div 
-                      key={classIndex} 
-                      className="flex items-center justify-between gap-2 p-2 rounded hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <span className="text-xs font-medium text-muted-foreground min-w-[50px]">
-                          {classItem.time}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium block truncate">{classItem.name}</span>
-                          <span className="text-xs text-muted-foreground">{classItem.instructor}</span>
-                        </div>
-                      </div>
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs flex-shrink-0 ${getLevelColor(classItem.level)}`}
-                      >
-                        {classItem.level}
-                      </Badge>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span>{classItem.time}</span>
                 </div>
               </div>
             ))}
